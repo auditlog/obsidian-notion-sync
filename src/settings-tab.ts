@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, PluginSettingTab, Setting, Notice } from 'obsidian';
 import NotionSyncPlugin from './main';
 
 export class NotionSyncSettingTab extends PluginSettingTab {
@@ -16,18 +16,56 @@ export class NotionSyncSettingTab extends PluginSettingTab {
 
     containerEl.createEl('h2', { text: 'Notion Sync Settings' });
 
-    // API Key setting
+    // Connection status indicator
+    const statusEl = containerEl.createDiv({ cls: 'notion-sync-status disconnected' });
+    statusEl.createSpan({ text: 'Status: Not connected' });
+
+    // API Key setting with password field
     new Setting(containerEl)
       .setName('Notion API Key')
       .setDesc('Your Notion integration token. Get it from notion.so/my-integrations')
       .setClass('notion-sync-api-key')
-      .addText((text) =>
-        text
+      .addText((text) => {
+        text.inputEl.type = 'password';
+        text.inputEl.style.width = '100%';
+        return text
           .setPlaceholder('secret_...')
           .setValue(this.plugin.settings.notionApiKey)
           .onChange(async (value) => {
             this.plugin.settings.notionApiKey = value;
             await this.plugin.saveSettings();
+          });
+      });
+
+    // Test connection button
+    new Setting(containerEl)
+      .setName('Test Connection')
+      .setDesc('Verify that your API key is valid and can connect to Notion')
+      .addButton((button) =>
+        button
+          .setButtonText('Test Connection')
+          .setCta()
+          .onClick(async () => {
+            button.setDisabled(true);
+            button.setButtonText('Testing...');
+
+            const isValid = await this.plugin.testNotionConnection();
+
+            if (isValid) {
+              statusEl.removeClass('disconnected');
+              statusEl.addClass('connected');
+              statusEl.empty();
+              statusEl.createSpan({ text: 'Status: Connected' });
+              new Notice('Successfully connected to Notion!');
+            } else {
+              statusEl.removeClass('connected');
+              statusEl.addClass('disconnected');
+              statusEl.empty();
+              statusEl.createSpan({ text: 'Status: Connection failed' });
+            }
+
+            button.setDisabled(false);
+            button.setButtonText('Test Connection');
           })
       );
 

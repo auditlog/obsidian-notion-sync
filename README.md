@@ -59,21 +59,13 @@ npm run dev
 
 ### Plugin Settings
 
-1. Open Obsidian Settings > Notion Sync
-2. Paste your Notion API Key
-3. (Optional) Set default database for exports
-4. Configure sync preferences
+1. Open Obsidian Settings > Community Plugins > Notion Sync
+2. Paste your Notion API Key (stored securely in plugin settings)
+3. Click "Test Connection" to verify your API key works
+4. (Optional) Set default database ID for exports
+5. Configure import folder and sync preferences
 
-### Using Environment Variables (Development)
-
-Create a `.env` file in your vault root:
-
-```env
-NOTION_API_KEY=secret_xxxxxxxxxxxxxxxxxxxxx
-NOTION_DATABASE_ID=your-database-id-here
-```
-
-**Important**: Add `.env` to your `.gitignore` to keep your credentials safe.
+**Note**: Your API key is stored securely in Obsidian's plugin data folder (`.obsidian/plugins/obsidian-notion-sync/data.json`). No `.env` file is needed.
 
 ## Usage
 

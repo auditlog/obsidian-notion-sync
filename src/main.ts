@@ -1,12 +1,18 @@
 import { Plugin, Notice } from 'obsidian';
 import { NotionSyncSettings, DEFAULT_SETTINGS } from './settings';
 import { NotionSyncSettingTab } from './settings-tab';
+import { NotionClient } from './notion/client';
+import { ImportModal } from './ui/import-modal';
 
 export default class NotionSyncPlugin extends Plugin {
   settings: NotionSyncSettings;
+  notionClient: NotionClient | null = null;
 
   async onload(): Promise<void> {
     await this.loadSettings();
+
+    // Initialize Notion client if API key is set
+    this.initNotionClient();
 
     // Add settings tab
     this.addSettingTab(new NotionSyncSettingTab(this.app, this));
@@ -46,6 +52,39 @@ export default class NotionSyncPlugin extends Plugin {
 
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
+    // Reinitialize client when settings change
+    this.initNotionClient();
+  }
+
+  /**
+   * Initialize or reinitialize the Notion client
+   */
+  initNotionClient(): void {
+    if (this.settings.notionApiKey) {
+      this.notionClient = new NotionClient(this.settings.notionApiKey);
+    } else {
+      this.notionClient = null;
+    }
+  }
+
+  /**
+   * Test the connection to Notion API
+   */
+  async testNotionConnection(): Promise<boolean> {
+    if (!this.settings.notionApiKey) {
+      new Notice('Please enter your Notion API key first');
+      return false;
+    }
+
+    // Create a fresh client for testing
+    const testClient = new NotionClient(this.settings.notionApiKey);
+    const isValid = await testClient.testConnection();
+
+    if (!isValid) {
+      new Notice('Failed to connect to Notion. Please check your API key.');
+    }
+
+    return isValid;
   }
 
   async importFromNotion(): Promise<void> {
@@ -54,8 +93,12 @@ export default class NotionSyncPlugin extends Plugin {
       return;
     }
 
-    new Notice('Import from Notion - Coming soon!');
-    // TODO: Implement import logic
+    if (!this.notionClient) {
+      this.initNotionClient();
+    }
+
+    // Open import modal
+    new ImportModal(this.app, this).open();
   }
 
   async exportToNotion(): Promise<void> {

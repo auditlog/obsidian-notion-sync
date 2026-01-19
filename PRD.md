@@ -101,20 +101,16 @@ obsidian-notion-sync/
 ├── package.json
 ├── tsconfig.json
 ├── esbuild.config.mjs
-├── .env.example             # Example environment variables
 ├── .gitignore
 ├── README.md
 └── PRD.md
 ```
 
 ### 4.4 Configuration Storage
-1. **Plugin Settings** (recommended for end users):
-   - Stored in `.obsidian/plugins/obsidian-notion-sync/data.json`
-   - Managed through Obsidian's settings API
-
-2. **Environment Variables** (for development):
-   - `.env` file in vault root (gitignored)
-   - Variables: `NOTION_API_KEY`, `NOTION_DATABASE_ID`
+**Plugin Settings**:
+- Stored in `.obsidian/plugins/obsidian-notion-sync/data.json`
+- Managed through Obsidian's settings API
+- API key stored securely in plugin data (no external .env file needed)
 
 ### 4.5 Data Model
 
