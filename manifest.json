@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-notion-sync",
+  "name": "Notion Sync",
+  "version": "0.1.0",
+  "minAppVersion": "1.0.0",
+  "description": "Import notes from Notion to Obsidian and export changes back to Notion",
+  "author": "",
+  "authorUrl": "",
+  "isDesktopOnly": false
+}

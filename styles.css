@@ -1,0 +1,93 @@
+/* Obsidian Notion Sync Plugin Styles */
+
+.notion-sync-settings {
+  padding: 10px;
+}
+
+.notion-sync-settings .setting-item {
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding: 18px 0;
+}
+
+.notion-sync-settings .setting-item:last-child {
+  border-bottom: none;
+}
+
+.notion-sync-api-key input {
+  width: 100%;
+  font-family: var(--font-monospace);
+}
+
+.notion-sync-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.notion-sync-status.connected {
+  background-color: var(--background-modifier-success);
+  color: var(--text-success);
+}
+
+.notion-sync-status.disconnected {
+  background-color: var(--background-modifier-error);
+  color: var(--text-error);
+}
+
+.notion-sync-modal {
+  padding: 20px;
+}
+
+.notion-sync-modal .page-list {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  margin: 16px 0;
+}
+
+.notion-sync-modal .page-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  cursor: pointer;
+}
+
+.notion-sync-modal .page-item:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.notion-sync-modal .page-item:last-child {
+  border-bottom: none;
+}
+
+.notion-sync-modal .page-item input[type="checkbox"] {
+  margin-right: 12px;
+}
+
+.notion-sync-progress {
+  margin-top: 16px;
+}
+
+.notion-sync-progress .progress-bar {
+  height: 4px;
+  background-color: var(--background-modifier-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.notion-sync-progress .progress-bar-fill {
+  height: 100%;
+  background-color: var(--interactive-accent);
+  transition: width 0.3s ease;
+}
+
+.notion-sync-progress .progress-text {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
