@@ -48,14 +48,8 @@ npm run dev
 2. Click "New integration"
 3. Give it a name (e.g., "Obsidian Sync")
 4. Select the workspace you want to connect
-5. Copy the "Internal Integration Token"
-
-### Connecting Pages to Your Integration
-
-1. Open the Notion page or database you want to sync
-2. Click the "..." menu in the top right
-3. Select "Add connections"
-4. Find and select your integration
+5. In the **Access** tab, select which pages/databases the integration can access
+6. Copy the "Internal Integration Secret" (starts with `ntn_`)
 
 ### Plugin Settings
 

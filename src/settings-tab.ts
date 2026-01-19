@@ -29,7 +29,7 @@ export class NotionSyncSettingTab extends PluginSettingTab {
         text.inputEl.type = 'password';
         text.inputEl.style.width = '100%';
         return text
-          .setPlaceholder('secret_...')
+          .setPlaceholder('ntn_...')
           .setValue(this.plugin.settings.notionApiKey)
           .onChange(async (value) => {
             this.plugin.settings.notionApiKey = value;

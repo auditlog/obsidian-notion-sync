@@ -1,9 +1,4 @@
-import { BlockObjectResponse, RichTextItemResponse } from '@notionhq/client/build/src/api-endpoints';
-
-// Extended block type to include children
-type BlockWithChildren = BlockObjectResponse & {
-  children?: BlockWithChildren[];
-};
+import { NotionBlock } from '../notion/client';
 
 export interface ConversionResult {
   markdown: string;
@@ -16,10 +11,33 @@ export interface ImageReference {
   blockId: string;
 }
 
+interface RichTextItem {
+  type: string;
+  plain_text: string;
+  annotations?: {
+    bold?: boolean;
+    italic?: boolean;
+    strikethrough?: boolean;
+    underline?: boolean;
+    code?: boolean;
+  };
+  text?: {
+    link?: { url: string } | null;
+  };
+  mention?: {
+    type: string;
+    page?: { id: string };
+    date?: { start: string; end?: string };
+  };
+  equation?: {
+    expression: string;
+  };
+}
+
 /**
  * Convert Notion blocks to Markdown
  */
-export function blocksToMarkdown(blocks: BlockWithChildren[]): ConversionResult {
+export function blocksToMarkdown(blocks: NotionBlock[]): ConversionResult {
   const images: ImageReference[] = [];
   const lines: string[] = [];
 
@@ -38,55 +56,54 @@ export function blocksToMarkdown(blocks: BlockWithChildren[]): ConversionResult 
 /**
  * Convert a single Notion block to Markdown
  */
-function blockToMarkdown(block: BlockWithChildren, indent: number): ConversionResult {
+function blockToMarkdown(block: NotionBlock, indent: number): ConversionResult {
   const images: ImageReference[] = [];
   let markdown = '';
   const indentStr = '  '.repeat(indent);
 
   switch (block.type) {
     case 'paragraph':
-      markdown = richTextToMarkdown(block.paragraph.rich_text);
+      markdown = richTextToMarkdown(block.paragraph?.rich_text);
       break;
 
     case 'heading_1':
-      markdown = `# ${richTextToMarkdown(block.heading_1.rich_text)}`;
+      markdown = `# ${richTextToMarkdown(block.heading_1?.rich_text)}`;
       break;
 
     case 'heading_2':
-      markdown = `## ${richTextToMarkdown(block.heading_2.rich_text)}`;
+      markdown = `## ${richTextToMarkdown(block.heading_2?.rich_text)}`;
       break;
 
     case 'heading_3':
-      markdown = `### ${richTextToMarkdown(block.heading_3.rich_text)}`;
+      markdown = `### ${richTextToMarkdown(block.heading_3?.rich_text)}`;
       break;
 
     case 'bulleted_list_item':
-      markdown = `${indentStr}- ${richTextToMarkdown(block.bulleted_list_item.rich_text)}`;
+      markdown = `${indentStr}- ${richTextToMarkdown(block.bulleted_list_item?.rich_text)}`;
       break;
 
     case 'numbered_list_item':
-      markdown = `${indentStr}1. ${richTextToMarkdown(block.numbered_list_item.rich_text)}`;
+      markdown = `${indentStr}1. ${richTextToMarkdown(block.numbered_list_item?.rich_text)}`;
       break;
 
     case 'to_do':
-      const checked = block.to_do.checked ? 'x' : ' ';
-      markdown = `${indentStr}- [${checked}] ${richTextToMarkdown(block.to_do.rich_text)}`;
+      const checked = block.to_do?.checked ? 'x' : ' ';
+      markdown = `${indentStr}- [${checked}] ${richTextToMarkdown(block.to_do?.rich_text)}`;
       break;
 
     case 'toggle':
-      // Use details/summary for toggles, or just render as collapsible in Obsidian
-      const toggleText = richTextToMarkdown(block.toggle.rich_text);
+      const toggleText = richTextToMarkdown(block.toggle?.rich_text);
       markdown = `> [!info]- ${toggleText}`;
       break;
 
     case 'quote':
-      const quoteLines = richTextToMarkdown(block.quote.rich_text).split('\n');
+      const quoteLines = richTextToMarkdown(block.quote?.rich_text).split('\n');
       markdown = quoteLines.map(line => `> ${line}`).join('\n');
       break;
 
     case 'code':
-      const language = block.code.language || '';
-      const codeContent = richTextToMarkdown(block.code.rich_text);
+      const language = block.code?.language || '';
+      const codeContent = richTextToMarkdown(block.code?.rich_text);
       markdown = `\`\`\`${language}\n${codeContent}\n\`\`\``;
       break;
 
@@ -95,47 +112,47 @@ function blockToMarkdown(block: BlockWithChildren, indent: number): ConversionRe
       break;
 
     case 'callout':
-      const calloutIcon = block.callout.icon?.type === 'emoji' ? block.callout.icon.emoji : '';
-      const calloutText = richTextToMarkdown(block.callout.rich_text);
+      const calloutIcon = block.callout?.icon?.type === 'emoji' ? block.callout.icon.emoji : '';
+      const calloutText = richTextToMarkdown(block.callout?.rich_text);
       markdown = `> [!note] ${calloutIcon}\n> ${calloutText}`;
       break;
 
     case 'image':
-      const imageUrl = block.image.type === 'external'
-        ? block.image.external.url
-        : block.image.file.url;
-      const imageCaption = block.image.caption
+      const imageUrl = block.image?.type === 'external'
+        ? block.image.external?.url
+        : block.image?.file?.url;
+      const imageCaption = block.image?.caption
         ? richTextToMarkdown(block.image.caption)
         : '';
       const filename = `image_${block.id.replace(/-/g, '')}.png`;
 
-      images.push({
-        url: imageUrl,
-        filename,
-        blockId: block.id,
-      });
+      if (imageUrl) {
+        images.push({
+          url: imageUrl,
+          filename,
+          blockId: block.id,
+        });
+      }
 
-      // Use Obsidian image embed syntax
       markdown = imageCaption
         ? `![[${filename}]]\n*${imageCaption}*`
         : `![[${filename}]]`;
       break;
 
     case 'bookmark':
-      const bookmarkUrl = block.bookmark.url;
-      const bookmarkCaption = block.bookmark.caption
+      const bookmarkUrl = block.bookmark?.url || '';
+      const bookmarkCaption = block.bookmark?.caption
         ? richTextToMarkdown(block.bookmark.caption)
         : bookmarkUrl;
       markdown = `[${bookmarkCaption}](${bookmarkUrl})`;
       break;
 
     case 'link_preview':
-      markdown = `[Link](${block.link_preview.url})`;
+      markdown = `[Link](${block.link_preview?.url || ''})`;
       break;
 
     case 'equation':
-      // Block equation
-      markdown = `$$\n${block.equation.expression}\n$$`;
+      markdown = `$$\n${block.equation?.expression || ''}\n$$`;
       break;
 
     case 'table':
@@ -143,55 +160,52 @@ function blockToMarkdown(block: BlockWithChildren, indent: number): ConversionRe
       break;
 
     case 'column_list':
-      // Columns are not directly supported in Markdown
       markdown = '<!-- Column layout not supported -->';
       break;
 
     case 'child_page':
-      // Create a wikilink to the child page
-      markdown = `[[${block.child_page.title}]]`;
+      markdown = `[[${block.child_page?.title || 'Untitled'}]]`;
       break;
 
     case 'child_database':
-      markdown = `<!-- Database: ${block.child_database.title} -->`;
+      markdown = `<!-- Database: ${block.child_database?.title || 'Untitled'} -->`;
       break;
 
     case 'embed':
-      markdown = `[Embed](${block.embed.url})`;
+      markdown = `[Embed](${block.embed?.url || ''})`;
       break;
 
     case 'video':
-      const videoUrl = block.video.type === 'external'
-        ? block.video.external.url
-        : block.video.file.url;
-      markdown = `[Video](${videoUrl})`;
+      const videoUrl = block.video?.type === 'external'
+        ? block.video.external?.url
+        : block.video?.file?.url;
+      markdown = `[Video](${videoUrl || ''})`;
       break;
 
     case 'file':
-      const fileUrl = block.file.type === 'external'
-        ? block.file.external.url
-        : block.file.file.url;
-      const fileName = block.file.name || 'file';
-      markdown = `[${fileName}](${fileUrl})`;
+      const fileUrl = block.file?.type === 'external'
+        ? block.file.external?.url
+        : block.file?.file?.url;
+      const fileName = block.file?.name || 'file';
+      markdown = `[${fileName}](${fileUrl || ''})`;
       break;
 
     case 'pdf':
-      const pdfUrl = block.pdf.type === 'external'
-        ? block.pdf.external.url
-        : block.pdf.file.url;
-      markdown = `[PDF](${pdfUrl})`;
+      const pdfUrl = block.pdf?.type === 'external'
+        ? block.pdf.external?.url
+        : block.pdf?.file?.url;
+      markdown = `[PDF](${pdfUrl || ''})`;
       break;
 
     case 'audio':
-      const audioUrl = block.audio.type === 'external'
-        ? block.audio.external.url
-        : block.audio.file.url;
-      markdown = `[Audio](${audioUrl})`;
+      const audioUrl = block.audio?.type === 'external'
+        ? block.audio.external?.url
+        : block.audio?.file?.url;
+      markdown = `[Audio](${audioUrl || ''})`;
       break;
 
     case 'synced_block':
-      // Handle synced block children
-      if (block.synced_block.synced_from === null && block.children) {
+      if (block.synced_block?.synced_from === null && block.children) {
         const syncResult = processChildren(block.children, indent);
         markdown = syncResult.markdown;
         images.push(...syncResult.images);
@@ -203,7 +217,7 @@ function blockToMarkdown(block: BlockWithChildren, indent: number): ConversionRe
       break;
 
     case 'link_to_page':
-      if (block.link_to_page.type === 'page_id') {
+      if (block.link_to_page?.type === 'page_id') {
         markdown = `[[notion://${block.link_to_page.page_id}]]`;
       }
       break;
@@ -221,7 +235,7 @@ function blockToMarkdown(block: BlockWithChildren, indent: number): ConversionRe
   }
 
   // Process children for blocks that have them
-  if (block.children && block.children.length > 0 && !['synced_block'].includes(block.type)) {
+  if (block.children && block.children.length > 0 && block.type !== 'synced_block') {
     const childResult = processChildren(block.children, indent + 1);
     markdown += '\n' + childResult.markdown;
     images.push(...childResult.images);
@@ -233,7 +247,7 @@ function blockToMarkdown(block: BlockWithChildren, indent: number): ConversionRe
 /**
  * Process child blocks
  */
-function processChildren(children: BlockWithChildren[], indent: number): ConversionResult {
+function processChildren(children: NotionBlock[], indent: number): ConversionResult {
   const images: ImageReference[] = [];
   const lines: string[] = [];
 
@@ -252,7 +266,7 @@ function processChildren(children: BlockWithChildren[], indent: number): Convers
 /**
  * Convert Notion rich text to Markdown
  */
-function richTextToMarkdown(richText: RichTextItemResponse[]): string {
+function richTextToMarkdown(richText: RichTextItem[] | undefined): string {
   if (!richText || richText.length === 0) {
     return '';
   }
@@ -275,21 +289,20 @@ function richTextToMarkdown(richText: RichTextItemResponse[]): string {
         text = `~~${text}~~`;
       }
       if (item.annotations.underline) {
-        // Markdown doesn't have native underline, use HTML
         text = `<u>${text}</u>`;
       }
     }
 
     // Handle links
-    if (item.type === 'text' && item.text.link) {
+    if (item.type === 'text' && item.text?.link) {
       text = `[${text}](${item.text.link.url})`;
     }
 
     // Handle mentions
-    if (item.type === 'mention') {
-      if (item.mention.type === 'page') {
+    if (item.type === 'mention' && item.mention) {
+      if (item.mention.type === 'page' && item.mention.page) {
         text = `[[notion://${item.mention.page.id}|${text}]]`;
-      } else if (item.mention.type === 'date') {
+      } else if (item.mention.type === 'date' && item.mention.date) {
         const date = item.mention.date;
         text = date.end
           ? `${date.start} → ${date.end}`
@@ -300,7 +313,7 @@ function richTextToMarkdown(richText: RichTextItemResponse[]): string {
     }
 
     // Handle equations (inline)
-    if (item.type === 'equation') {
+    if (item.type === 'equation' && item.equation) {
       text = `$${item.equation.expression}$`;
     }
 
