@@ -19,7 +19,7 @@ A bidirectional synchronization plugin for Obsidian that allows you to import no
 4. Install and enable the plugin
 
 ### Manual Installation
-1. Download the latest release from [GitHub Releases](https://github.com/AdrianCzwordeowicz/obsidian-notion-sync/releases)
+1. Download the latest release from [GitHub Releases](https://github.com/auditlog/obsidian-notion-sync/releases)
 2. Extract the files to your vault's `.obsidian/plugins/obsidian-notion-sync/` folder
 3. Reload Obsidian
 4. Enable the plugin in Settings > Community Plugins
@@ -27,7 +27,7 @@ A bidirectional synchronization plugin for Obsidian that allows you to import no
 ### For Development
 ```bash
 # Clone the repository
-git clone https://github.com/AdrianCzwordeowicz/obsidian-notion-sync.git
+git clone https://github.com/auditlog/obsidian-notion-sync.git
 cd obsidian-notion-sync
 
 # Install dependencies
@@ -180,5 +180,5 @@ MIT License - see [LICENSE](./LICENSE) for details.
 
 If you find this plugin useful, consider:
 - Starring the repository
-- Reporting issues on [GitHub Issues](https://github.com/AdrianCzwordeowicz/obsidian-notion-sync/issues)
+- Reporting issues on [GitHub Issues](https://github.com/auditlog/obsidian-notion-sync/issues)
 - Contributing to development
